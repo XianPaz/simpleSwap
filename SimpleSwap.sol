@@ -3,6 +3,9 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+/// @title SimpleSwap
+/// @notice A basic AMM-like token swap contract supporting liquidity provision, removal, and token swaps
+/// @dev This contract does not include fees and supports only a fixed single token pair
 contract SimpleSwap {
     IERC20 public tokenA;
     IERC20 public tokenB;
@@ -10,14 +13,32 @@ contract SimpleSwap {
     uint public reserveA;
     uint public reserveB;
 
+    /// @notice Total liquidity minted in the pool
     uint public totalLiquidity;
+    
+    /// @notice Mapping of user addresses to their liquidity balance
     mapping(address => uint) public liquidityBalance;
 
+    /// @notice Initializes the contract with token pair addresses
+    /// @param _tokenA Address of token A
+    /// @param _tokenB Address of token B
     constructor(address _tokenA, address _tokenB) {
         tokenA = IERC20(_tokenA);
         tokenB = IERC20(_tokenB);
     }
 
+    /// @notice Adds liquidity to the pool
+    /// @param _tokenA Must be the contract's tokenA
+    /// @param _tokenB Must be the contract's tokenB
+    /// @param amountADesired Amount of tokenA the user wants to add
+    /// @param amountBDesired Amount of tokenB the user wants to add
+    /// @param amountAMin Minimum acceptable amount of tokenA
+    /// @param amountBMin Minimum acceptable amount of tokenB
+    /// @param to Address that will receive the liquidity tokens
+    /// @param deadline Timestamp after which the operation is invalid
+    /// @return amountA Actual amount of tokenA used
+    /// @return amountB Actual amount of tokenB used
+    /// @return liquidity Amount of liquidity tokens minted
     function addLiquidity(
         address _tokenA,
         address _tokenB,
@@ -74,7 +95,9 @@ contract SimpleSwap {
         return (amountA, amountB, liquidity);
     }
 
-    // helper function: square root
+    /// @notice Computes the square root of a number
+    /// @param y Number to compute the square root of
+    /// @return z Square root result
     function sqrt(uint y) internal pure returns (uint z) {
         if (y > 3) {
             z = y;
@@ -88,11 +111,24 @@ contract SimpleSwap {
         }
     }
 
-    // helper function: minimum of two numbers
+    /// @notice Returns the smaller of two unsigned integers
+    /// @param x First number
+    /// @param y Second number
+    /// @return Minimum of x and y
     function min(uint x, uint y) internal pure returns (uint) {
         return x < y ? x : y;
     }
 
+    /// @notice Removes liquidity from the pool
+    /// @param _tokenA Must be the contract's tokenA
+    /// @param _tokenB Must be the contract's tokenB
+    /// @param liquidity Amount of liquidity to burn
+    /// @param amountAMin Minimum amount of tokenA to receive
+    /// @param amountBMin Minimum amount of tokenB to receive
+    /// @param to Address to receive the withdrawn tokens
+    /// @param deadline Timestamp after which the operation is invalid
+    /// @return amountA Amount of tokenA returned
+    /// @return amountB Amount of tokenB returned
     function removeLiquidity(
         address _tokenA,
         address _tokenB,
@@ -130,6 +166,13 @@ contract SimpleSwap {
         return (amountA, amountB);
     }
 
+    /// @notice Swaps a fixed amount of input tokens for as many output tokens as possible
+    /// @param amountIn Amount of input tokens to swap
+    /// @param amountOutMin Minimum acceptable amount of output tokens
+    /// @param path Array of token addresses (must contain exactly [tokenA, tokenB] or vice versa)
+    /// @param to Address to receive output tokens
+    /// @param deadline Timestamp after which the operation is invalid
+    /// @return amounts Array containing input and output token amounts
     function swapExactTokensForTokens(
         uint amountIn,
         uint amountOutMin,
@@ -196,6 +239,10 @@ contract SimpleSwap {
     return amounts;
     }
 
+    /// @notice Gets the price ratio between two tokens
+    /// @param _tokenA Address of input token
+    /// @param _tokenB Address of output token
+    /// @return price Price scaled by 1e18
     function getPrice(
         address _tokenA, 
         address _tokenB) 
@@ -217,6 +264,11 @@ contract SimpleSwap {
         }
     }
 
+    /// @notice Calculates the output amount for a given input using the constant product formula
+    /// @param amountIn Input amount of tokens
+    /// @param reserveIn Reserve amount of input token
+    /// @param reserveOut Reserve amount of output token
+    /// @return amountOut Expected output token amount
     function getAmountOut(
         uint amountIn,
         uint reserveIn,
