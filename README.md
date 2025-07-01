@@ -7,6 +7,8 @@ A minimalistic smart contract for token swaps and liquidity management, inspired
 - Swap between two ERC20 tokens
 - Query prices and output estimates
 
+⚠️ **Note**: This implementation supports only one fixed pair of tokens, without fees. It's meant for learning, experimentation, and educational purposes—not production use.
+
 ---
 
 ## 📄 Contract Overview
