@@ -7,17 +7,17 @@ A minimalistic smart contract for token swaps and liquidity management, inspired
 - Swap between two ERC20 tokens
 - Query prices and output estimates
 
-The repo contains other contracts:
+The repo contains other two contracts:
 
 - XianPazTokenA & XianPazTokenB: mintable ERC20s, 18 decimals created with openZeppelin library.
-- SwapVerifier: to test simpleSwap performing a simple swap.
 
 You can find these contracts deployed and verified in Sepolia in the following addresses:
 
 - XianPazTokenA -> 0x0286BF4682568aC31Cae0afAe87391dff0C3d078
 - XianPazTokenB -> 0xC526b8eD99CB755cF6b7BC695D2541266713501F
 - SimpleSwap -> 0x2550a37051a909Ab4792B4F2283b5884A2272C46
-- SwapVerifier -> 0x9098b7a248BA2E82F79a5F9bDFf392c3ba4A5f4f
+
+SimpleSwap contract has been verified executing the verify() function of the SwapVerifier contract deployed at 0x9f8F02DAB384DDdf1591C3366069Da3Fb0018220 using "Cristian Paz" as the author which can be found in Authors array, position 104 and 105.
 
 ⚠️ **Note**: This implementation supports only one fixed pair of tokens, without fees. It's meant for learning, experimentation, and educational purposes—not production use.
 
