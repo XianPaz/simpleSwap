@@ -5,12 +5,19 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title SimpleSwap
 /// @notice A basic AMM-like token swap contract supporting liquidity provision, removal, and token swaps
-/// @dev This contract does not include fees and supports only a fixed single token pair
+/// @dev This contract does not include fees and supports only a fixed single token pair (tokenA and tokenB created in constructor)
 contract SimpleSwap {
+
+    /// @notice tokenA of the pool
     IERC20 public tokenA;
+
+    /// @notice tokenB of the pool
     IERC20 public tokenB;
 
+    /// @notice Reserves for tokenA
     uint public reserveA;
+
+    /// @notice Reserves for tokenB
     uint public reserveB;
 
     /// @notice Total liquidity minted in the pool
@@ -18,6 +25,26 @@ contract SimpleSwap {
     
     /// @notice Mapping of user addresses to their liquidity balance
     mapping(address => uint) public liquidityBalance;
+
+    /// @notice Emitted when liquidity is added to the pool
+    /// @param provider The address providing liquidity
+    /// @param amountA Amount of tokenA added
+    /// @param amountB Amount of tokenB added
+    /// @param liquidity Amount of liquidity tokens minted
+    event LiquidityAdded(address indexed provider, uint amountA, uint amountB, uint liquidity);
+
+    /// @notice Emitted when liquidity is removed from the pool
+    /// @param provider The address removing liquidity
+    /// @param amountA Amount of tokenA removed
+    /// @param amountB Amount of tokenB removed
+    /// @param liquidity Amount of liquidity tokens burned
+    event LiquidityRemoved(address indexed provider, uint amountA, uint amountB, uint liquidity);
+
+    /// @notice Emitted when a swap occurs
+    /// @param trader The address executing the swap
+    /// @param amountIn Amount of tokenIn
+    /// @param amountOut Amount of tokenOut
+    event TokenSwapped(address indexed trader, uint amountIn, uint amountOut);
 
     /// @notice Initializes the contract with token pair addresses
     /// @param _tokenA Address of token A
@@ -92,6 +119,9 @@ contract SimpleSwap {
         totalLiquidity += liquidity;
         liquidityBalance[to] += liquidity;
 
+        // emit event for added liquidity
+        emit LiquidityAdded(msg.sender, amountA, amountB, liquidity);
+
         return (amountA, amountB, liquidity);
     }
 
@@ -163,6 +193,9 @@ contract SimpleSwap {
         require(tokenA.transfer(to, amountA), "transfer failed for token a");
         require(tokenB.transfer(to, amountB), "transfer failed for token b");
 
+        // emit event for removed liquidity
+        emit LiquidityRemoved(msg.sender, amountA, amountB, liquidity);
+
         return (amountA, amountB);
     }
 
@@ -209,17 +242,15 @@ contract SimpleSwap {
 
     // calculate amount out using constant product formula: x * y = k
     // y_out = (reserve_out * amount_in) / (reserve_in + amount_in)
-    uint numerator = amountIn * reserveOut;
-    uint denominator = reserveIn + amountIn;
-    uint amountOut = numerator / denominator;
+    uint amountOut = (amountIn * reserveOut) / (reserveIn + amountIn);
 
     require(amountOut >= amountOutMin, "insufficient output amount");
 
     // transfer output tokens to recipient
     if (isAToB) {
-       require(tokenB.transfer(to, amountOut), "transfer failed for output token");
+       require(tokenB.transfer(to, amountOut), "transfer fail for output token");
     } else {
-       require(tokenA.transfer(to, amountOut), "transfer failed for output token");
+       require(tokenA.transfer(to, amountOut), "transfer fail for output token");
     }
 
     // update reserves
@@ -236,6 +267,10 @@ contract SimpleSwap {
     _amounts[0] = amountIn;
     _amounts[1] = amountOut;
     amounts = _amounts;
+
+    // emit event for token swapped
+    emit TokenSwapped(msg.sender, amountIn, amountOut);
+
     return amounts;
     }
 
@@ -274,7 +309,7 @@ contract SimpleSwap {
         uint reserveIn,
         uint reserveOut
     ) external pure returns (uint amountOut) {
-        require(amountIn > 0, "amount in must be greater than zero");
+        require(amountIn > 0, "amount in must > zero");
         require(reserveIn > 0 && reserveOut > 0, "insufficient liquidity");
 
         amountOut = (amountIn * reserveOut) / (reserveIn + amountIn);
